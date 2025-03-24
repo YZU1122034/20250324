@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="./assets/phaser@3.55.2.min.js"></script>
+    <!-- <script src="./assets/phaser@3.55.2.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@v3.88.2/dist/phaser.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -15,6 +16,7 @@
 </head>
 
 <body>
+    <h1></h1>
     <script>
         const config = {
             type: Phaser.AUTO,
@@ -39,12 +41,13 @@
         };
 
         const game = new Phaser.Game(config);
-        let platforms,
-            player,
-            cursors
+        let platforms;
+        let player;
+        let cursors;
             
         let isFlipping = false;
-        let emmiter, particles; // 全域變數
+        let emmiter;
+        let particles; // 全域變數
 
         function preload() {
             // 練習先前學過的經驗，將background.png、platform.png、ice-platform.png、dude.png資料匯入
@@ -96,7 +99,7 @@
             emitter = this.add.particles (0, 0, 'red', {
                 x: player.x,
                 y: player.y + player.displayHeight / 2, //讓粒子從玩家腳底出現
-                speed: { min: 100, max: 100},
+                speed: { min: -100, max: 100},
                 scale: { start: 0.1, end: 0},//逐漸縮小
                 lifespan: 400,
                 quantity: 10, //一次噴發 10 顆粒子
@@ -119,20 +122,25 @@
                 player.setVelocityX(0);                
                 player.anims.play("turn");
             }
+
             // 增加判斷是否翻轉中
             if (cursors.up.isDown && isTouch && !isFlipping) {
                 isFlipping = true;
                 player.setVelocityY(-500);
 
-                // 使用tweens補問動畫設計翻轉效果
+                // 使用粒子特效
+                emitter.setActive(true).start();
+                
+                // 使用tweens補間動畫設計翻轉效果
                 this.tweens.add({
                     targets: player,
-                    angle: 360,
-                    duration: 600,// 翻轉時間設定為0.6秒
-                    ease: 'Cubic.easeOut', // 使用easeOut速率曲線
+                    angle: cursors.right.isDown? 360 : -360, // 判斷左右鍵
+                    duration: 600, // 翻轉時間設定為0.6 秒
+                    ease: 'Cubic.easeOut', //使用easeOut速率曲線
                     onComplete: () => { // 翻轉完成後執行
                         player.setAngle(0); // 回復原本玩家角度
                         isFlipping = false; // 重置翻轉狀態
+                        emitter.stop(); //停止粒子特效
                     }
                 });
             }
